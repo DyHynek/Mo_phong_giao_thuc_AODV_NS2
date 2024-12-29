@@ -2,7 +2,8 @@ set val(chan)           Channel/WirelessChannel
 set val(prop)           Propagation/TwoRayGround   
 set val(netif)          Phy/WirelessPhy            
 set val(mac)            Mac/802_11                 
-set val(ifq)          	Queue/DropTail/PriQueue      		
+set val(ifq)          	Queue/DropTail/PriQueue    
+#set val(ifq)           CMUPriQueue    		
 set val(ll)             LL                         
 set val(ant)            Antenna/OmniAntenna       
 set val(ifqlen)         50                         
@@ -14,8 +15,18 @@ set val(stop)           150
 
 set ns          [new Simulator]
 set tracefd       [open AODVtrace.tr w]
-set windowVsTime2 [open win.tr w]
+#set windowVsTime2 [open win.tr w]
 set namtrace      [open AODVtrace.nam w]
+set Time	[open time.tr w]
+
+#luu gia tri thong luong
+set cwnd9 [open cwnd9.tr w]
+set cwnd10 [open cwnd10.tr w]
+
+#luu gia tri bang thong
+set b9 [open b9.tr w]
+set b10 [open b10.tr w]
+
 
 set xcord(0) 90
 set xcord(1) 90
@@ -129,34 +140,49 @@ $ns at 125 "$node_(3) setdest 90 90 25"
 
 set tcp0 [new Agent/TCP/Newreno]
 $tcp0 set class_ 2
-set sink [new Agent/TCPSink]
+set sink0 [new Agent/TCPSink]
 $ns attach-agent $node_(9) $tcp0
-$ns attach-agent $node_(11) $sink
-$ns connect $tcp0 $sink
+$ns attach-agent $node_(11) $sink0
+$ns connect $tcp0 $sink0
 set ftp [new Application/FTP]
 $ftp attach-agent $tcp0
 $ns at 0.1 "$ftp start"
 
 set tcp1 [new Agent/TCP/Vegas]
 $tcp1 set class_ 1
-set sink [new Agent/TCPSink]
+set sink1 [new Agent/TCPSink]
 $ns attach-agent $node_(10) $tcp1
-$ns attach-agent $node_(11) $sink
-$ns connect $tcp1 $sink
+$ns attach-agent $node_(11) $sink1
+$ns connect $tcp1 $sink1
 set ftp [new Application/FTP]
 $ftp attach-agent $tcp1
 $ns at 0.1 "$ftp start"
 
-proc plotWindow {tcpSource file} {
+#tinh thong luong
+proc calcCwnd {tcpSource file} {
 	global ns
-	set time 0.01
+	set time 1
 	set now [$ns now]
 	set cwnd [$tcpSource set cwnd_]
 	puts $file "$now $cwnd"
-	$ns at [expr $now+$time] "plotWindow $tcpSource $file"
+	$ns at [expr $now+$time] "calcCwnd $tcpSource $file"
 }
 
-$ns at 0.15 "plotWindow $tcp0 $windowVsTime2"
+$ns at 0.00 "calcCwnd $tcp0 $cwnd9"
+$ns at 0.00 "calcCwnd $tcp1 $cwnd10"
+
+#tinh bang thong
+proc calcByte {sink file} {
+	global ns
+	set time 1
+	set bw0 [$sink set bytes_]
+	set now [$ns now]
+	puts $file " $now [expr {$bw0 / $time * 8 / 1000000}]"
+	$sink set bytes_ 0
+	$ns at [expr $now + $time] "calcByte $sink $file"
+}
+$ns at 0.00 "calcByte $sink0 $b9"
+$ns at 0.00 "calcByte $sink1 $b10"
 
 for {set i 0} {$i < $val(nn)} { incr i } {
 	$ns initial_node_pos $node_($i) 30
