@@ -11,22 +11,22 @@ BEGIN {
               pkt_size = $8
               level = $4
     
-   # Store start time
+   # Thời gian bắt đầu lưu trữ
    if (level == "AGT" && event == "s" && pkt_size >= 512) {
      if (time < startTime) {
               startTime = time
               }
         }
     
-   # Update total received packets' size and store packets arrival time
+   # Cập nhật tổng kích thước gói nhận được và thời gian đến của gói lưu trữ
    if (level == "AGT" && event == "r" && pkt_size >= 512) {
         if (time > stopTime) {
               stopTime = time
               }
-        # Rip off the header
+        
         hdr_size = pkt_size % 512
         pkt_size -= hdr_size
-        # Store received packet's size
+        # Lưu trữ kích thước của gói nhận được
         recvdSize += pkt_size
         }
    }
