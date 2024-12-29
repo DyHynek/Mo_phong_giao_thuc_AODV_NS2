@@ -5,7 +5,7 @@ BEGIN {
  count = 0;
  }
  {
- #packet delivery ratio
+ #tỷ lệ phân phối gói tin
  if($4 == "AGT" && $1 == "s" && seqno < $6) {
  seqno = $6;
  } else if(($4 == "AGT") && ($1 == "r")) {
@@ -13,7 +13,7 @@ BEGIN {
  } else if ($1 == "D" && $5 == "CBK" && $8 > 512){
  droppedPackets++; 
  }
- #end-to-end delay
+ #trễ lan truyền
  if($4 == "AGT" && $1 == "s") {
  start_time[$6] = $2;
  } else if(($7 == "tcp") && ($1 == "r")) {
